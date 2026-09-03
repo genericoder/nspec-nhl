@@ -6,6 +6,7 @@ package tui
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/charmbracelet/glamour"
 	"github.com/charmbracelet/lipgloss"
@@ -59,6 +60,19 @@ func Render(path string, d *doc.Document, markdown string, width int) (string, e
 // view when a browser editor is available for the file.
 func EditLine(url string) string {
 	return metaStyle.Render("Edit in your browser: ") + urlStyle.Render(url)
+}
+
+// ClearScreen returns the ANSI escape sequence that clears the terminal
+// and moves the cursor to the top-left, for redrawing a live view in
+// place rather than scrolling.
+func ClearScreen() string {
+	return "\x1b[H\x1b[2J"
+}
+
+// UpdatedLine renders the footer shown after a live view redraws in
+// response to a browser save.
+func UpdatedLine(t time.Time) string {
+	return metaStyle.Render(fmt.Sprintf("Updated %s — refreshes automatically when you save in the browser.", t.Format("15:04:05")))
 }
 
 // Summarize produces a one-line, human-readable block count summary, e.g.

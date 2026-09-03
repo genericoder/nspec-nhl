@@ -17,7 +17,7 @@ every .yaml/.yml file in --dir. Saving a document in the browser writes
 both its .md and .yaml files. Press Ctrl+C to stop.`,
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return serveAndBlock(cmd, dir, port, open, "/")
+			return serveAndBlock(cmd, dir, port, open, "/", nil)
 		},
 	}
 

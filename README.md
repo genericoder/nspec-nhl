@@ -58,11 +58,13 @@ mdgen view yamls/example.yaml
 Renders a styled header (file + block summary) followed by
 syntax-highlighted Markdown via [glamour](https://github.com/charmbracelet/glamour).
 
-### 4. Edit in the browser
+### 4. Edit in the browser, live in the terminal
 
 `view` also starts a local editor server for that file and prints its
 URL (Ctrl+C to stop; pass `--no-serve` to skip this and just print the
-preview). To serve every document in a directory instead:
+preview). Every time you save in the browser, the running terminal
+view clears and redraws itself with the updated content — no restart,
+no polling. To serve every document in a directory instead:
 
 ```sh
 mdgen serve --dir yamls --open

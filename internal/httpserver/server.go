@@ -48,6 +48,13 @@ var (
 // inside Dir.
 type Server struct {
 	Dir string
+
+	// OnSaved, if set, is called synchronously after a document's .md
+	// and .yaml files have both been written successfully, with the
+	// path of the .yaml file that changed. It lets a caller (e.g. a
+	// running `mdgen view`) refresh a live view of the document without
+	// polling the filesystem.
+	OnSaved func(yamlPath string)
 }
 
 // New returns a Server rooted at dir.
@@ -184,6 +191,10 @@ func (s *Server) handleSave(w http.ResponseWriter, r *http.Request) {
 	if err := os.WriteFile(yamlPath, yamlBytes, 0o644); err != nil {
 		writeJSONError(w, http.StatusInternalServerError, err)
 		return
+	}
+
+	if s.OnSaved != nil {
+		s.OnSaved(yamlPath)
 	}
 
 	writeJSON(w, http.StatusOK, map[string]any{"ok": true})

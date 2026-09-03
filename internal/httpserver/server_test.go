@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"testing"
 
 	"mdgen/internal/doc"
@@ -19,6 +20,12 @@ blocks:
 
 func newTestServer(t *testing.T) (*httptest.Server, string) {
 	t.Helper()
+	ts, _, dir := newTestServerAndBackend(t)
+	return ts, dir
+}
+
+func newTestServerAndBackend(t *testing.T) (*httptest.Server, *Server, string) {
+	t.Helper()
 	dir := t.TempDir()
 	if err := os.WriteFile(filepath.Join(dir, "a.yaml"), []byte(sampleYAML), 0o644); err != nil {
 		t.Fatal(err)
@@ -26,7 +33,7 @@ func newTestServer(t *testing.T) (*httptest.Server, string) {
 	srv := New(dir)
 	ts := httptest.NewServer(srv.Handler())
 	t.Cleanup(ts.Close)
-	return ts, dir
+	return ts, srv, dir
 }
 
 func TestHandleIndex_ListsYAMLFiles(t *testing.T) {
@@ -165,6 +172,56 @@ func TestHandleSave_WritesMDAndYAML(t *testing.T) {
 	}
 	if d.Blocks[2].Type != doc.BlockList || len(d.Blocks[2].Items) != 2 {
 		t.Errorf("Blocks[2] = %+v", d.Blocks[2])
+	}
+}
+
+func TestHandleSave_InvokesOnSaved(t *testing.T) {
+	ts, srv, dir := newTestServerAndBackend(t)
+
+	var mu sync.Mutex
+	var gotPath string
+	calls := 0
+	srv.OnSaved = func(yamlPath string) {
+		mu.Lock()
+		defer mu.Unlock()
+		gotPath = yamlPath
+		calls++
+	}
+
+	resp, err := http.Post(ts.URL+"/api/save/a", "text/plain", strings.NewReader("# Sample\n\nupdated\n"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("status = %d, want 200", resp.StatusCode)
+	}
+
+	mu.Lock()
+	defer mu.Unlock()
+	if calls != 1 {
+		t.Fatalf("OnSaved called %d times, want 1", calls)
+	}
+	want := filepath.Join(dir, "a.yaml")
+	if gotPath != want {
+		t.Errorf("OnSaved called with %q, want %q", gotPath, want)
+	}
+}
+
+func TestHandleSave_DoesNotInvokeOnSavedOnFailure(t *testing.T) {
+	ts, srv, _ := newTestServerAndBackend(t)
+
+	called := false
+	srv.OnSaved = func(string) { called = true }
+
+	resp, err := http.Post(ts.URL+"/api/save/nope", "text/plain", strings.NewReader("# x\n"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	resp.Body.Close()
+
+	if called {
+		t.Error("OnSaved should not be called when the save fails")
 	}
 }
 

@@ -20,7 +20,11 @@ import (
 // (pointing at path, or the index if path is empty), optionally opens it
 // in the default browser, and blocks until the command's context is
 // canceled (e.g. by Ctrl+C), then shuts down gracefully.
-func serveAndBlock(cmd *cobra.Command, dir string, port int, openBrowser bool, path string) error {
+//
+// If onSaved is non-nil, it is called (with the saved .yaml path and the
+// server's base URL) synchronously whenever a browser save completes, so
+// a caller can refresh a live view of the affected document.
+func serveAndBlock(cmd *cobra.Command, dir string, port int, openBrowser bool, path string, onSaved func(yamlPath, url string)) error {
 	ln, err := net.Listen("tcp", fmt.Sprintf("127.0.0.1:%d", port))
 	if err != nil {
 		return fmt.Errorf("starting listener: %w", err)
@@ -36,6 +40,9 @@ func serveAndBlock(cmd *cobra.Command, dir string, port int, openBrowser bool, p
 	}
 
 	srv := httpserver.New(dir)
+	if onSaved != nil {
+		srv.OnSaved = func(yamlPath string) { onSaved(yamlPath, url) }
+	}
 	httpSrv := &http.Server{Handler: srv.Handler()}
 
 	ctx, stop := signal.NotifyContext(cmd.Context(), syscall.SIGINT, syscall.SIGTERM)

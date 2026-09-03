@@ -110,6 +110,133 @@ func TestViewCmd_ServesUntilContextCanceled(t *testing.T) {
 	}
 }
 
+func TestViewCmd_LiveUpdatesTerminalOnBrowserSave(t *testing.T) {
+	dir := t.TempDir()
+	yamlPath := filepath.Join(dir, "a.yaml")
+	content := "title: My Doc\nblocks:\n  - type: paragraph\n    text: original text\n"
+	if err := os.WriteFile(yamlPath, []byte(content), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	root := newRootCmd()
+	var out syncBuffer
+	root.SetOut(&out)
+	root.SetErr(&out)
+	root.SetArgs([]string{"view", yamlPath, "--port", "0"})
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	done := make(chan error, 1)
+	go func() { done <- root.ExecuteContext(ctx) }()
+
+	editURL := waitForURL(t, &out)
+	if !strings.Contains(out.String(), "original text") {
+		t.Fatalf("expected initial render to contain original text, got:\n%s", out.String())
+	}
+
+	saveURL := strings.TrimSuffix(editURL, "/edit/a") + "/api/save/a"
+	newMD := "# My Doc\n\nupdated live text\n"
+	resp, err := http.Post(saveURL, "text/plain", strings.NewReader(newMD))
+	if err != nil {
+		t.Fatalf("POST %s: %v", saveURL, err)
+	}
+	resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("POST %s: status = %d, want 200", saveURL, resp.StatusCode)
+	}
+
+	deadline := time.Now().Add(5 * time.Second)
+	for time.Now().Before(deadline) && !strings.Contains(out.String(), "updated live text") {
+		time.Sleep(10 * time.Millisecond)
+	}
+	final := out.String()
+	if !strings.Contains(final, "updated live text") {
+		t.Fatalf("expected terminal output to refresh with saved content, got:\n%s", final)
+	}
+	// The refreshed render should have replaced the on-screen view (via
+	// a clear-screen escape), not merely appended to old output.
+	if !strings.Contains(final, "\x1b[H\x1b[2J") {
+		t.Errorf("expected output to contain a clear-screen escape sequence on refresh")
+	}
+
+	// The yaml file itself should also reflect the save.
+	yamlBytes, err := os.ReadFile(yamlPath)
+	if err != nil {
+		t.Fatalf("reading yaml after save: %v", err)
+	}
+	if !strings.Contains(string(yamlBytes), "updated live text") {
+		t.Errorf("expected yaml file to contain saved text, got:\n%s", yamlBytes)
+	}
+
+	cancel()
+	select {
+	case err := <-done:
+		if err != nil {
+			t.Errorf("Execute() returned error after cancel: %v", err)
+		}
+	case <-time.After(5 * time.Second):
+		t.Fatal("view command did not shut down after context cancellation")
+	}
+}
+
+func TestViewCmd_DoesNotRefreshForUnrelatedFile(t *testing.T) {
+	dir := t.TempDir()
+	yamlPath := filepath.Join(dir, "a.yaml")
+	if err := os.WriteFile(yamlPath, []byte("title: T\nblocks:\n  - type: paragraph\n    text: original\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(dir, "b.yaml"), []byte("title: B\nblocks:\n  - type: paragraph\n    text: other doc\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	root := newRootCmd()
+	var out syncBuffer
+	root.SetOut(&out)
+	root.SetErr(&out)
+	root.SetArgs([]string{"view", yamlPath, "--port", "0"})
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	done := make(chan error, 1)
+	go func() { done <- root.ExecuteContext(ctx) }()
+
+	editURL := waitForURL(t, &out)
+	saveURL := strings.TrimSuffix(editURL, "/edit/a") + "/api/save/b"
+
+	resp, err := http.Post(saveURL, "text/plain", strings.NewReader("# B\n\nbrand new content for b\n"))
+	if err != nil {
+		t.Fatalf("POST %s: %v", saveURL, err)
+	}
+	resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("POST %s: status = %d, want 200", saveURL, resp.StatusCode)
+	}
+
+	// Give any (incorrect) refresh a moment to happen, then confirm it
+	// didn't: the terminal should still show only the original content
+	// for a.yaml, with no clear-screen redraw triggered.
+	time.Sleep(200 * time.Millisecond)
+	final := out.String()
+	if strings.Contains(final, "brand new content for b") {
+		t.Errorf("view of a.yaml should not refresh when b.yaml is saved, got:\n%s", final)
+	}
+	if strings.Contains(final, "\x1b[H\x1b[2J") {
+		t.Errorf("no clear-screen redraw should occur for an unrelated file's save")
+	}
+
+	cancel()
+	select {
+	case err := <-done:
+		if err != nil {
+			t.Errorf("Execute() returned error after cancel: %v", err)
+		}
+	case <-time.After(5 * time.Second):
+		t.Fatal("view command did not shut down after context cancellation")
+	}
+}
+
 // syncBuffer is a bytes.Buffer safe for concurrent writes (from the
 // command goroutine) and reads (from the polling test goroutine).
 type syncBuffer struct {

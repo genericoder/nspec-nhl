@@ -3,6 +3,7 @@ package tui
 import (
 	"strings"
 	"testing"
+	"time"
 
 	"mdgen/internal/doc"
 )
@@ -69,5 +70,20 @@ func TestEditLine_ContainsURL(t *testing.T) {
 	got := EditLine("http://localhost:8080/edit/a")
 	if !strings.Contains(got, "http://localhost:8080/edit/a") {
 		t.Errorf("EditLine() = %q, want it to contain the URL", got)
+	}
+}
+
+func TestClearScreen(t *testing.T) {
+	got := ClearScreen()
+	if got != "\x1b[H\x1b[2J" {
+		t.Errorf("ClearScreen() = %q, want the cursor-home + clear-screen ANSI sequence", got)
+	}
+}
+
+func TestUpdatedLine_ContainsTimestamp(t *testing.T) {
+	ts := time.Date(2026, 1, 2, 15, 4, 5, 0, time.UTC)
+	got := UpdatedLine(ts)
+	if !strings.Contains(got, "15:04:05") {
+		t.Errorf("UpdatedLine() = %q, want it to contain the formatted time", got)
 	}
 }
