@@ -1,0 +1,10 @@
+title: "Roadmap"
+blocks:
+  - type: paragraph
+    text: "Planned work, roughly in order."
+  - type: list
+    ordered: true
+    items:
+      - "Ship the CLI"
+      - "Add the browser editor"
+      - "Polish the terminal view"

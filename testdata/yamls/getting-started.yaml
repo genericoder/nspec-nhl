@@ -1,0 +1,33 @@
+title: "Getting Started"
+blocks:
+  - type: heading
+    level: 2
+    text: "Installation"
+  - type: paragraph
+    text: "Install the tool with the command below, then verify it works."
+  - type: code
+    language: bash
+    text: |
+      go install mdgen/cmd/mdgen@latest
+  - type: heading
+    level: 2
+    text: "Features"
+  - type: list
+    ordered: false
+    items:
+      - "Generate Markdown from YAML"
+      - "Preview documents in the terminal"
+      - "Edit in the browser with live sync"
+  - type: heading
+    level: 2
+    text: "Comparison"
+  - type: table
+    headers: ["Feature", "Supported"]
+    rows:
+      - ["Headings", "yes"]
+      - ["Tables", "yes"]
+  - type: quote
+    text: "Simple tools, used well, go a long way."
+  - type: hr
+  - type: paragraph
+    text: "See the README for more."
