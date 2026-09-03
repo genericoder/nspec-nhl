@@ -7,7 +7,26 @@
 <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
-<header><h1>mdgen documents</h1></header>
+<header>
+  <div class="header-left">
+    <div class="brand">
+      <svg class="logo-mark" width="28" height="28" viewBox="0 0 32 32" role="img" aria-label="mdgen">
+        <defs>
+          <linearGradient id="logoGradient" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#7aa2f7"/>
+            <stop offset="1" stop-color="#bb9af7"/>
+          </linearGradient>
+        </defs>
+        <rect width="32" height="32" rx="9" fill="url(#logoGradient)"/>
+        <text x="7" y="23" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="16" font-weight="700" fill="#181a20">M</text>
+        <path d="M21 12 L25.2 16 L21 20" fill="none" stroke="#181a20" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span class="logo-word">mdgen</span>
+    </div>
+    <span class="header-sep">/</span>
+    <h1>Documents</h1>
+  </div>
+</header>
 <main style="display:block; overflow:auto;">
 <ul class="doc-list">
 {{range .}}<li><a href="/edit/{{.}}">{{.}}</a></li>{{else}}<li>No YAML documents found.</li>{{end}}
