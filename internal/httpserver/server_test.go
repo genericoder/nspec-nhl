@@ -282,6 +282,27 @@ func TestStaticAssets_AreServed(t *testing.T) {
 	}
 }
 
+// TestStaticAssets_AppJSAutosaves guards against regressing to a
+// save-only-on-explicit-click editor: without a debounced autosave on
+// input, `mdgen view`'s live terminal refresh never fires until the user
+// remembers to hit Save or Ctrl+S.
+func TestStaticAssets_AppJSAutosaves(t *testing.T) {
+	ts, _ := newTestServer(t)
+	resp, err := http.Get(ts.URL + "/static/app.js")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer resp.Body.Close()
+	body := readAll(t, resp)
+
+	if !strings.Contains(body, `addEventListener("input"`) {
+		t.Fatal("app.js has no input listener")
+	}
+	if !strings.Contains(body, "setTimeout(save") && !strings.Contains(body, "autosaveTimer") {
+		t.Error("app.js input handling does not appear to debounce an autosave; typing alone won't sync to disk or refresh the terminal view")
+	}
+}
+
 func readAll(t *testing.T, resp *http.Response) string {
 	t.Helper()
 	buf := make([]byte, 0, 4096)

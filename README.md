@@ -62,9 +62,10 @@ syntax-highlighted Markdown via [glamour](https://github.com/charmbracelet/glamo
 
 `view` also starts a local editor server for that file and prints its
 URL (Ctrl+C to stop; pass `--no-serve` to skip this and just print the
-preview). Every time you save in the browser, the running terminal
-view clears and redraws itself with the updated content — no restart,
-no polling. To serve every document in a directory instead:
+preview). The editor autosaves ~800ms after you stop typing (Ctrl+S or
+the Save button save immediately), and every save clears and redraws
+the running terminal view with the updated content — no restart, no
+polling. To serve every document in a directory instead:
 
 ```sh
 mdgen serve --dir yamls --open
