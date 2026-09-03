@@ -1,0 +1,38 @@
+title: "mdgen Example"
+blocks:
+  - type: heading
+    level: 2
+    text: "What is this?"
+  - type: paragraph
+    text: "This is an example YAML document. Run `mdgen generate` to turn it into example.md, `mdgen view yamls/example.yaml` to preview it in your terminal, or `mdgen serve` to edit it in your browser."
+  - type: heading
+    level: 2
+    text: "Supported blocks"
+  - type: table
+    headers: ["Block", "Purpose"]
+    rows:
+      - ["heading", "section titles"]
+      - ["paragraph", "body text"]
+      - ["list", "bullet or numbered items"]
+      - ["code", "fenced code blocks"]
+      - ["quote", "blockquotes"]
+      - ["table", "tabular data"]
+      - ["hr", "a horizontal rule"]
+  - type: heading
+    level: 2
+    text: "Try it"
+  - type: list
+    ordered: true
+    items:
+      - "Edit this file, or any .yaml file in this directory."
+      - "Run `mdgen generate` to regenerate the Markdown."
+      - "Run `mdgen serve` and open the printed URL to edit in your browser instead."
+  - type: code
+    language: bash
+    text: |
+      mdgen generate
+      mdgen view yamls/example.yaml
+      mdgen serve --open
+  - type: quote
+    text: "Round-tripping browser edits back into this YAML is the whole point."
+  - type: hr
