@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>mdgen</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<header><h1>mdgen documents</h1></header>
+<main style="display:block; overflow:auto;">
+<ul class="doc-list">
+{{range .}}<li><a href="/edit/{{.}}">{{.}}</a></li>{{else}}<li>No YAML documents found.</li>{{end}}
+</ul>
+</main>
+</body>
+</html>

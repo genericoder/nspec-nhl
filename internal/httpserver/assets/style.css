@@ -1,0 +1,159 @@
+:root {
+  color-scheme: light dark;
+  --bg: #1e1f24;
+  --bg-panel: #26282f;
+  --fg: #e6e6ea;
+  --fg-muted: #9a9ca6;
+  --accent: #7aa2f7;
+  --border: #383a43;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-panel);
+}
+
+header h1 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  color: var(--accent);
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+#status {
+  font-size: 0.85rem;
+  color: var(--fg-muted);
+  min-width: 6rem;
+}
+
+button {
+  background: var(--accent);
+  color: #101216;
+  border: none;
+  border-radius: 6px;
+  padding: 0.45rem 1rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+button:hover {
+  filter: brightness(1.1);
+}
+
+main {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+}
+
+#editor,
+#preview {
+  flex: 1 1 50%;
+  min-width: 0;
+  height: 100%;
+  overflow: auto;
+  padding: 1.25rem;
+}
+
+#editor {
+  background: var(--bg);
+  color: var(--fg);
+  border: none;
+  border-right: 1px solid var(--border);
+  resize: none;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+#editor:focus {
+  outline: none;
+}
+
+#preview {
+  line-height: 1.6;
+}
+
+#preview h1, #preview h2, #preview h3 {
+  color: var(--accent);
+}
+
+#preview code {
+  background: var(--bg-panel);
+  padding: 0.1rem 0.3rem;
+  border-radius: 4px;
+  font-size: 0.9em;
+}
+
+#preview pre {
+  background: var(--bg-panel);
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  overflow-x: auto;
+}
+
+#preview pre code {
+  background: none;
+  padding: 0;
+}
+
+#preview blockquote {
+  border-left: 3px solid var(--accent);
+  margin: 0.5rem 0;
+  padding: 0.1rem 0 0.1rem 1rem;
+  color: var(--fg-muted);
+}
+
+#preview table {
+  border-collapse: collapse;
+}
+
+#preview th, #preview td {
+  border: 1px solid var(--border);
+  padding: 0.35rem 0.6rem;
+}
+
+.doc-list {
+  list-style: none;
+  padding: 1.25rem;
+  margin: 0;
+}
+
+.doc-list li {
+  padding: 0.4rem 0;
+}
+
+.doc-list a {
+  color: var(--accent);
+  text-decoration: none;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+.doc-list a:hover {
+  text-decoration: underline;
+}
